@@ -1,4 +1,5 @@
 from fastapi import FastAPI, UploadFile, File
+from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import numpy as np
 from io import BytesIO
@@ -7,6 +8,17 @@ import tensorflow as tf
 
 app = FastAPI()
 
+# Allow CORS for React frontend
+# Browsers block cross-origin requests (from a React app to a FastAPI server) by default for security reasons. Adding CORSMiddleware ensures that the frontend can communicate with the backend.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # Update if  React app runs on a different port
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Load model and define class names
 MODEL = tf.keras.models.load_model("../models/model_1.keras")
 CLASS_NAMES = ['Early_blight', 'Late_blight', 'Healthy']
 
@@ -15,8 +27,9 @@ async def ping():
     return {"message": "Hello, I'm alive!"}
 
 def read_file_as_image(data) -> np.ndarray:
-    image = np.array(Image.open(BytesIO(data)))
-    return image
+    image = Image.open(BytesIO(data)).convert("RGB")  # Ensure 3 color channels
+    image = image.resize((224, 224))  # Resize to match model input size
+    return np.array(image)
 
 @app.post('/predict')
 async def predict(file: UploadFile = File(...)):
@@ -27,9 +40,9 @@ async def predict(file: UploadFile = File(...)):
     try:
         # Read and preprocess the image
         image = read_file_as_image(await file.read())
-        image_batch = np.expand_dims(image, 0)
+        image_batch = np.expand_dims(image, 0)  # Add batch dimension
 
-        # Predict with the model
+        # Make predictions
         predictions = MODEL.predict(image_batch)
         predicted_class = CLASS_NAMES[np.argmax(predictions[0])]
         confidence = float(np.max(predictions[0]))  # Convert to Python float
