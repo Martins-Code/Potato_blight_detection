@@ -12,11 +12,12 @@ app = FastAPI()
 # Browsers block cross-origin requests (from a React app to a FastAPI server) by default for security reasons. Adding CORSMiddleware ensures that the frontend can communicate with the backend.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Update if  React app runs on a different port
+    allow_origins=["http://localhost:3000"],  # Ensure this is the correct port
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 # Load model and define class names
 MODEL = tf.keras.models.load_model("../models/model_1.keras")
@@ -56,4 +57,4 @@ async def predict(file: UploadFile = File(...)):
         return {"error": str(e)}
 
 if __name__ == '__main__':
-    uvicorn.run(app=app, host='localhost', port=8080)
+    uvicorn.run(app=app, host='localhost', port=8082)

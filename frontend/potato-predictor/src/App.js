@@ -24,7 +24,7 @@ function App() {
 
     try {
       const response = await axios.post(
-        "http://localhost:8080/predict",
+        "http://localhost:8082/predict",
         formData,
         {
           headers: {
@@ -32,6 +32,7 @@ function App() {
           },
         }
       );
+      console.log(response.data); // Debugging: Log the response
 
       if (response.data.error) {
         setError(response.data.error); // Handle backend error
@@ -39,23 +40,34 @@ function App() {
         setResult(response.data); // Set result if successful
       }
     } catch (error) {
-      setError("Something went wrong. Please try again."); // Handle Axios error
-      console.error(error);
+      console.error("Axios error:", error); // Debugging: Log the error
+      setError("Something went wrong. Please try again.");
     }
   };
 
   return (
     <div className="App">
       <header className="App-header">
-        <h1>Potato Disease Predictor</h1>
+        <h1 className="title">Potato Disease Predictor</h1>
+        <p className="description">
+          Upload an image of a potato leaf, and we'll predict its condition.
+        </p>
+
         <div className="upload-container">
-          <input type="file" accept="image/*" onChange={handleFileChange} />
-          <button onClick={handleSubmit}>Upload and Predict</button>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="file-input"
+          />
+          <button onClick={handleSubmit} className="submit-btn">
+            Upload and Predict
+          </button>
         </div>
 
         {result && (
           <div className="result">
-            <h3>Prediction Result</h3>
+            <h3 className="result-header">Prediction Result</h3>
             <p>
               <strong>Class:</strong> {result.class}
             </p>
